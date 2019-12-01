@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="最近在学习线性回归和梯度下降法的矩阵表示中，对矩阵的求导始终迷惑。查阅了很多资料，大多写得云里雾里，这里记录一下。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="矩阵向量求导解惑">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;01&#x2F;07&#x2F;%E7%9F%A9%E9%98%B5%E5%90%91%E9%87%8F%E6%B1%82%E5%AF%BC%E8%A7%A3%E6%83%91&#x2F;index.html">
+<meta property="og:site_name" content="码农的日子">
+<meta property="og:description" content="最近在学习线性回归和梯度下降法的矩阵表示中，对矩阵的求导始终迷惑。查阅了很多资料，大多写得云里雾里，这里记录一下。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;matrix_01.gif">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;matrix_02.gif">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;matrix_03.gif">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;matrix_04.jpg">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;matrix_05.jpg">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;matrix_06.jpg">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;matrix_07.jpg">
+<meta property="og:updated_time" content="2019-12-01T10:14:26.281Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;matrix_01.gif">
+
+<link rel="canonical" href="http://yoursite.com/2019/01/07/%E7%9F%A9%E9%98%B5%E5%90%91%E9%87%8F%E6%B1%82%E5%AF%BC%E8%A7%A3%E6%83%91/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>矩阵向量求导解惑 | 码农的日子</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码农的日子</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/07/%E7%9F%A9%E9%98%B5%E5%90%91%E9%87%8F%E6%B1%82%E5%AF%BC%E8%A7%A3%E6%83%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Joe Tung">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码农的日子">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          矩阵向量求导解惑
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-01-07 22:37:31" itemprop="dateCreated datePublished" datetime="2019-01-07T22:37:31+08:00">2019-01-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-12-01 18:14:26" itemprop="dateModified" datetime="2019-12-01T18:14:26+08:00">2019-12-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>最近在学习线性回归和梯度下降法的矩阵表示中，对矩阵的求导始终迷惑。查阅了很多资料，大多写得云里雾里，这里记录一下。</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="1-最初的约定"><a href="#1-最初的约定" class="headerlink" title="1.最初的约定"></a>1.最初的约定</h2><p>假设$\mathtt{X}\in\mathbb{R}^\mathbf{m\text{x}n}$,$\theta\in\mathbb{R}^\mathbf{n\text{x}1}$,$\mathbf{y}\in\mathbb{R}^\mathbf{m\text{x}1}$,我们有这样一个式子，$$\mathbf{J(\theta)}=\frac{1}{2}(\mathbf{X\theta-y})^T(\mathbf{X\theta-y})$$那么，$\frac{\partial \mathbf{J(\theta)} }{\partial \mathbf{\theta} }$等于多少呢？</p>
+<p>$\mathtt{X}$是可以看作输入矩阵，它有m个样本，没有样本有n个分量。$\mathtt{\theta}$是n乘以1的列向量，代表n个待求参数。$\mathtt{y}$是列向量，代表对应于每个样本的真实值。即，<br>$\mathbf{X}=\begin{bmatrix}<br>{x_{11}}&amp;{x_{12}}&amp;{\cdots}&amp;{x_{1n}} \\<br>{x_{21}}&amp;{x_{22}}&amp;{\cdots}&amp;{x_{2n}} \\<br>{\vdots}&amp;{\vdots}&amp;{\ddots}&amp;{\vdots} \\<br>{x_{m1}}&amp;{x_{m2}}&amp;{\cdots}&amp;{x_{mn}} \\<br>\end{bmatrix}$, $\mathbf{\theta}=<br>\begin{bmatrix}\theta_{1} \\<br>\theta_{2}\\<br>\vdots\\<br>\theta_{n}<br>\end{bmatrix}$, $\mathbf{y}=\begin{bmatrix}y_{1}\\<br>y_{2}\\<br>\vdots\\<br>y_{m}<br>\end{bmatrix}$</p>
+<h2 id="2-一起来推导"><a href="#2-一起来推导" class="headerlink" title="2.一起来推导"></a>2.一起来推导</h2><p>展开$J(\theta):$<br>$$<br>\begin{aligned}<br>\mathbf{J(\theta)}&amp;=\frac{1}{2}(\mathbf{X\theta-y})^\mathrm T(\mathbf{X\theta-y}) \\<br>&amp; = \frac{1}{2}(\mathbf \theta^{\mathrm{T }} \mathbf X ^ \mathrm T - \mathbf y ^ \mathrm T)(\mathbf X \theta - \mathbf y) \\<br>&amp; = \frac{1}{2} (\theta ^\mathrm{T} \mathbf X ^\mathrm{T} \mathbf X \theta - \theta ^\mathrm{T} X ^\mathrm{T} \mathbf y - \mathbf y ^\mathrm{T} \mathbf X \theta + \mathbf y ^\mathrm{T} \mathbf y) \\<br>\end{aligned}<br>$$</p>
+<p>小括号中四项分别求偏导：</p>
+<ul>
+<li><p><strong>第①项:</strong>  $$\begin{aligned}<br>\frac{\partial \theta ^\mathrm{T} \mathbf X ^\mathrm{T} \mathbf X \theta}{\partial\mathbf{\theta}}&amp;=[\mathbf X ^\mathrm{T} \mathbf X + (\mathbf X ^\mathrm{T} \mathbf X)^\mathrm{T}]\theta  \\<br>&amp;=(\mathbf X ^\mathrm{T} \mathbf X + \mathbf X ^\mathrm{T} \mathbf X) \theta   \\<br>&amp;=2\mathbf X ^\mathrm{T} \mathbf X \theta    \\<br>\end{aligned}<br>$$</p>
+</li>
+<li><p><strong>第②项:</strong>  $\frac{\partial \mathbf \theta ^\mathbf{T} \mathbf X ^\mathrm{T} \mathbf y}{\partial \mathbf \theta}=\mathbf X ^\mathrm{T} \mathbf y$</p>
+</li>
+<li><p><strong>第③项:</strong>  $\frac{\partial \mathbf y ^\mathrm{T} \mathbf X\theta}{\partial \mathbf \theta}=(\mathbf y ^\mathrm{T}\mathbf X) ^\mathrm{T}=\mathbf X ^\mathrm{T} \mathbf y$</p>
+</li>
+<li><p><strong>第④项:</strong>  $\frac{\partial {\mathbf y ^\mathbf{T} \mathbf y}}{\partial \mathbf \theta} = \mathbf 0$</p>
+</li>
+</ul>
+<p>在①②③④中用到了以下公式:<br> (1)  $\frac{\partial \mathbf A \mathbf x}{\partial \mathbf x}=\mathbf A ^ \mathrm T$<br> (2)  $\frac{\partial \mathbf x ^ \mathrm T \mathbf A}{\partial \mathbf x}=\mathbf A$<br> (3)  $\frac{\partial \mathbf x ^ \mathrm T \mathbf x \mathbf y}{\partial \mathbf x}=$ </p>
+<p>其中，$\mathtt{A}\in\mathbb{R}^\mathbf{m\text{x}n}$,$\mathbf x\in\mathbb{R}^\mathbf{n\text{x}1}$,$\mathbf{y}\in\mathbb{R}^\mathbf{n\text{x}1}$，下面会接着说这些求导公式的含义和常用公式。</p>
+<h2 id="3-两种布局"><a href="#3-两种布局" class="headerlink" title="3.两种布局"></a>3.两种布局</h2><p>矩阵向量求导，根据求导得到结果矩阵或向量，大致分出两大类的约定，一些作者喜欢把这两种约定混合使用，也就是分子布局和分母布局:</p>
+<ul>
+<li><strong>分子布局(numerator layout)：</strong> 分子是列向量，分母是行向量。这也被称为雅各布方程。也就是在结果矩阵中，分子从上到下，以对应的列向量形式排列，分母从左到右，以行向量的形式排列。</li>
+<li><strong>分母布局(denominator layout):</strong> 分母是列向量，分子是行向量。这也被称为海森方程。与分子布局相反，分子以行向量的形式，从左到右排列，分母以列向量的形式从上到下排列。</li>
+</ul>
+<p>为了阐明这两种布局的区别，我们先来看最简单的求导规则。<br><strong><em>首先</em></strong>，假设向量$\mathbf y$对标量$x$求导,$<br>\mathbf{y}=\begin{bmatrix}y_{1}\<br>y_{2}\<br>\vdots\<br>y_{m}<br>\end{bmatrix}<br>$,则l两种布局：</p>
+<ul>
+<li><strong>分子布局：</strong><br>$$\frac{\partial\mathbf{y}}{\partial x}=\begin{bmatrix}\frac{\partial y_{1}}{\partial x}\<br>\frac{\partial y_{2}}{\partial x}\<br>\vdots\<br>\frac{\partial y_{m}}{\partial x}<br>\end{bmatrix}$$</li>
+<li><strong>分子布局：</strong><br>$$<br>\frac{\partial\mathbf{y}}{\partial x}=\begin{bmatrix}\frac{\partial y_{1}}{\partial x} &amp; \frac{\partial y_{2}}{\partial x} &amp; \cdots &amp; \frac{\partial y_{m}}{\partial x}\end{bmatrix}<br>$$</li>
+</ul>
+<p><strong><em>然后</em></strong>，假设 $<br>\mathbf{y}=\begin{bmatrix}y_{1}\\<br>y_{2}\<br>\vdots\<br>y_{m}<br>\end{bmatrix}<br>$，$<br>\mathbf{x}=\begin{bmatrix}x_{1}\\<br>x_{2}\\<br>\vdots\\<br>x_{n}<br>\end{bmatrix}<br>$，则两种布局为：</p>
+<ul>
+<li><strong>分子布局：</strong><br>$$\dfrac{\partial\mathbf{y}}{\partial\mathbf{x}}=\left[<br>\begin{aligned}<br>\begin{matrix}<br>\dfrac{\partial{y_1}}{\partial{x_1}}&amp;\dfrac{\partial{y_1}}{\partial{x_2}}&amp;\cdots&amp;\dfrac{\partial{y_1}}{\partial{x_n}}\\<br>\dfrac{\partial{y_2}}{\partial{x_1}}&amp;\dfrac{\partial{y_2}}{\partial{x_2}}&amp;\cdots&amp;\dfrac{\partial{y_2}}{\partial{x_n}}\\<br>\vdots&amp;\vdots&amp;\ddots&amp;\vdots&amp;\\<br>\dfrac{\partial{y_m}}{\partial{x_1}}&amp;\dfrac{\partial{y_m}}{\partial{x_2}}&amp;\cdots&amp;\dfrac{\partial{y_m}}{\partial{x_n}}\\<br>\end{matrix}<br>\end{aligned}<br>\right]$$</li>
+<li><strong>分母布局：</strong><br>$$<br>\dfrac{\partial\mathbf{y}}{\partial\mathbf{x}}=\left[<br>\begin{aligned}<br>\begin{matrix}<br>\dfrac{\partial{y_1}}{\partial{x_1}}&amp;\dfrac{\partial{y_2}}{\partial{x_1}}&amp;\cdots&amp;\dfrac{\partial{y_m}}{\partial{x_1}}\\<br>\dfrac{\partial{y_2}}{\partial{x_2}}&amp;\dfrac{\partial{y_2}}{\partial{x_2}}&amp;\cdots&amp;\dfrac{\partial{y_2}}{\partial{x_2}}\\<br>\vdots&amp;\vdots&amp;\ddots&amp;\vdots&amp;\\<br>\dfrac{\partial{y_1}}{\partial{x_n}}&amp;\dfrac{\partial{y_2}}{\partial{x_n}}&amp;\cdots&amp;\dfrac{\partial{y_m}}{\partial{x_n}}\\<br>\end{matrix}<br>\end{aligned}<br>\right]<br>$$</li>
+</ul>
+<p>你可以随时在两种布局间进行转换，只要你自己不犯迷糊。为了简单起见，更为了遵循大多数时候的传统，我在接下来的部分将默认使用分母布局，除非是在一些很特殊的情形。</p>
+<h2 id="4-矩阵向量求导的定义（分母布局）"><a href="#4-矩阵向量求导的定义（分母布局）" class="headerlink" title="4.矩阵向量求导的定义（分母布局）"></a>4.矩阵向量求导的定义（分母布局）</h2><p>下面罗列一些分母布局下矩阵向量求导的定义，既然是定义，就没有什么好说的。我觉得不需要去记住，只需要理解一下，用的时候再过来查查就行了。下面列举几种常用的基本求导规则。</p>
+<p><img src="/images/matrix_01.gif" alt="矩阵求导01"><br><img src="/images/matrix_02.gif" alt="矩阵求导02"><br><img src="/images/matrix_03.gif" alt="矩阵求导03"></p>
+<h2 id="5-基本公式推导"><a href="#5-基本公式推导" class="headerlink" title="5.基本公式推导"></a>5.基本公式推导</h2><h3 id="1-frac-partial-mathbf-Ax-partial-mathbf-x"><a href="#1-frac-partial-mathbf-Ax-partial-mathbf-x" class="headerlink" title="1.$\frac{\partial\mathbf{Ax}}{\partial\mathbf{x}}$"></a>1.$\frac{\partial\mathbf{Ax}}{\partial\mathbf{x}}$</h3><p>对于 $\frac{\partial\mathbf{Ax}}{\partial\mathbf{x}}$ ,假设有$\mathbf{A}\in\mathbb{R}^{m\times n},\mathbf{x}\in\mathbb{R}^{n\times1}$，$\mathbf{Ax}\in\mathbb{R}^{m\times 1}$，则(1&lt;=i&lt;=m)$$(\mathbf{Ax})_ i=a_{i1}x_{1}+a_{i2}x_{2}+\cdots+a_{in}x_{n} $$ ，故有</p>
+<p>$$<br>\begin{aligned}<br>\frac{\partial\mathbf{\mathbf{Ax}}}{\partial\mathbf{x}}<br>&amp;= \begin{bmatrix}\frac{\partial(\mathbf{Ax})_ {1}}{\partial x_ {1}} &amp; \frac{\partial(\mathbf{Ax})_ {2}}{\partial x_ {1}} &amp; \cdots &amp; \frac{\partial(\mathbf{Ax})_ {m}}{\partial x_ {1}}\\<br>\frac{\partial(\mathbf{Ax})_ {1}}{\partial x_ {2}} &amp; \frac{\partial(\mathbf{Ax})_ {2}}{\partial x_ {2}} &amp; \cdots &amp; \frac{\partial(\mathbf{Ax})_ {m}}{\partial x_ {2}}\\<br>\vdots &amp; \vdots &amp; \ddots &amp; \vdots\\<br>\frac{\partial(\mathbf{Ax})_ {1}}{\partial x_ {n}} &amp; \frac{\partial(\mathbf{Ax})_ {2}}{\partial x_ {n}} &amp; \cdots &amp; \frac{\partial(\mathbf{Ax})_ {m}}{\partial x_ {n}}<br>\end{bmatrix}\\<br>&amp;= \begin{bmatrix}a_ {11} &amp; a_ {21} &amp; \cdots &amp; a_ {m1}\\<br>a_ {12} &amp; a_ {22} &amp; \cdots &amp; a_ {m2}\\<br>\vdots &amp; \vdots &amp; \ddots &amp; \vdots\\<br>a_ {1n} &amp; a_ {2n} &amp; \cdots &amp; a_ {mn}<br>\end{bmatrix}\\<br>&amp;= \mathbf{A}^{\mathrm{T}}<br>\end{aligned}<br>$$</p>
+<h3 id="2-frac-partial-mathbf-x-mathrm-T-A-partial-mathbf-x"><a href="#2-frac-partial-mathbf-x-mathrm-T-A-partial-mathbf-x" class="headerlink" title="2.$\frac{\partial\mathbf{x^{\mathrm{T}}A}}{\partial\mathbf{x}}$"></a>2.$\frac{\partial\mathbf{x^{\mathrm{T}}A}}{\partial\mathbf{x}}$</h3><p>对于$\frac{\partial\mathbf{x^{\mathrm{T}}A}}{\partial\mathbf{x}}$，假设有$\mathbf{A}\in\mathbb{R}^{m\times n},\mathbf{x}\in\mathbb{R}^{m\times1}，\mathbf{x^{\mathrm{T}}A}\in\mathbb{R}^{1\times n}$，则 $(\mathbf{x^{\mathrm{T}}A})_ {j}=a_{1j}x_ {1}+a_ {2j}x_ {2}+\cdots+a_ {mj}x_ {m}$<br>(1&lt;=j&lt;=n)，故有，<br>$$<br>\begin{aligned}<br>\frac{\partial \mathbf{\mathbf{x^{\mathrm{T}}A}}}{\partial \mathbf{x}}<br>&amp;= \begin{bmatrix}\frac{\partial(\mathbf{x^{\mathrm{T}}A})_ {1}}{\partial x_ {1}} &amp; \frac{\partial(\mathbf{x^{\mathrm{T}}A})_ {2}}{\partial x_ {1}} &amp; \cdots &amp; \frac{\partial(\mathbf{x^{\mathrm{T}}A})_ {n}}{\partial x_ {1}}\\<br>\frac{\partial(\mathbf{x^{\mathrm{T}}A})_ {1}}{\partial x_ {2}} &amp; \frac{\partial(\mathbf{x^{\mathrm{T}}A})_ {2}}{\partial x_ {2}} &amp; \cdots &amp; \frac{\partial(\mathbf{x^{\mathrm{T}}A})_ {n}}{\partial x_ {2}}\\<br>\vdots &amp; \vdots &amp; \ddots &amp; \vdots\\<br>\frac{\partial(\mathbf{x^{\mathrm{T}}A})_ {1}}{\partial x_ {m}} &amp; \frac{\partial(\mathbf{x^{\mathrm{T}}A})_ {2}}{\partial x_ {m}} &amp; \cdots &amp; \frac{\partial(\mathbf{x^{\mathrm{T}}A})_ {n}}{\partial x_ {m}}<br>\end{bmatrix}\\<br>&amp;= \begin{bmatrix}a_ {11} &amp; a_ {12} &amp; \cdots &amp; a_ {1n}\\<br>a_ {21} &amp; a_ {22} &amp; \cdots &amp; a_ {2n}\\<br>\vdots &amp; \vdots &amp; \ddots &amp; \vdots\\<br>a_ {m1} &amp; a_ {m2} &amp; \cdots &amp; a_ {mn}<br>\end{bmatrix}\\<br>&amp;= \mathbf{A} \\<br>\end{aligned}<br>$$</p>
+<h3 id="3-frac-partial-mathbf-Av-partial-mathbf-x"><a href="#3-frac-partial-mathbf-Av-partial-mathbf-x" class="headerlink" title="3.$\frac{\partial{\mathbf{Av}}}{\partial{\mathbf{x}}}$"></a>3.$\frac{\partial{\mathbf{Av}}}{\partial{\mathbf{x}}}$</h3><p>对于$\frac{\partial{\mathbf{Av}}}{\partial{\mathbf{x}}}$，假设$\mathbf{A}\in\mathbb{R}^{m\times n},\mathbf{v}\in\mathbb{R}^{n\times1}，\mathbf{x}\in\mathbb{R}^{p\times 1}$，对于分母布局，分子横着排列，分母为列向量。则有<br>$$<br>\frac{\partial{\mathbf{Av}}}{\partial \mathbf x}=\begin{bmatrix}\frac{\partial (\mathbf{Av}) _{1}}{\partial  \mathbf x} &amp; \frac{\partial (\mathbf{Av}) _{2}}{\partial  \mathbf x} &amp; \frac{\partial (\mathbf{Av}) _{3}}{\partial  \mathbf x} &amp; \cdots &amp; \frac{\partial (\mathbf{Av}) _{m}}{\partial  \mathbf x}\end{bmatrix}<br>$$<br>而对于其中的第i项,1&lt;=i&lt;=m，有$(\mathbf{Av}) _i=a _{i1} \mathbf{v} _{1} + a _{i2} \mathbf{v} _2 + a _{i3} \mathbf{v} _3 + \cdots + a _{in} \mathbf{v} _n $，则<br>$$<br>\begin{aligned}<br>\frac{\partial{(\mathbf{Av}) _i}}{\partial{\mathbf{x}}}<br>&amp;=a _{i1} \frac{\partial{\mathbf{v} _1}}{\partial{\mathbf{x}}} + a _{i2} \frac{\partial{\mathbf{v} _2}}{\partial{\mathbf{x}}}  + \cdots + a _{in} \frac{\partial{\mathbf{v} _n}}{\partial{\mathbf{x}}}  \\<br>&amp;=\begin{bmatrix}\frac{\partial{\mathbf{v} _1}}{\partial{\mathbf{x}}} &amp; \frac{\partial{\mathbf{v} _2}}{\partial{\mathbf{x}}}  &amp; \cdots &amp; \frac{\partial (\mathbf{Av}) _{m}}{\partial  \mathbf x} \end{bmatrix} \begin{bmatrix} a _{i1} \\ a _{i2} \\ a _{i3} \\  \vdots  \\  a _{in}   \end{bmatrix}   \\<br>&amp;=\frac{\partial \mathbf{v}}{\partial \mathbf{x}} \begin{bmatrix} a _{i1} \\ a _{i2} \\ a _{i3} \\  \vdots  \\  a _{in}   \end{bmatrix}<br>\end{aligned}<br>$$<br>所以，可以求得，<br>$$<br>\begin{aligned}<br>\frac{\partial{\mathbf{Av}}}{\partial \mathbf x}&amp;=\frac{\partial \mathbf{v}}{\partial \mathbf{x}}<br>\begin{bmatrix}<br>a _{11} &amp; a _{21} &amp; \cdots &amp; a _{m1} \\<br>a _{12} &amp; a _{22} &amp; \cdots &amp; a _{m2} \\<br>\vdots  &amp; \vdots  &amp; \vdots &amp; \vdots \\<br>a _{1n} &amp; a _{2n} &amp; \vdots &amp; a _{mn} \\<br>\end{bmatrix}  \\<br>&amp;=\frac{\partial \mathbf{v}}{\partial \mathbf{x}} \mathbf{A}^\mathrm{T}<br>\end{aligned}<br>$$</p>
+<h3 id="4-frac-partial-mathbf-u-cdot-v-partial-mathbf-x-frac-partial-mathbf-u-mathbf-T-v-partial-mathbf-x"><a href="#4-frac-partial-mathbf-u-cdot-v-partial-mathbf-x-frac-partial-mathbf-u-mathbf-T-v-partial-mathbf-x" class="headerlink" title="4.$\frac{\partial{\mathbf{u\cdot v}} }{\partial\mathbf{x}}=\frac{\partial{\mathbf{u^\mathbf{T} v}} }{\partial\mathbf{x}}$"></a>4.$\frac{\partial{\mathbf{u\cdot v}} }{\partial\mathbf{x}}=\frac{\partial{\mathbf{u^\mathbf{T} v}} }{\partial\mathbf{x}}$</h3><p>对于$\frac{\partial{\mathbf{u^\mathbf{T} v}} }{\partial\mathbf{x}}$，假设$\mathbf{u}\in\mathbb{R}^{n\times 1},\mathbf{v}\in\mathbb{R}^{n\times1}，\mathbf{x}\in\mathbb{R}^{p\times 1}$，则有，<br>$$<br>\begin{aligned}<br>\frac{\partial{\mathbf{u\cdot v}} }{\partial\mathbf{x}}&amp;=\frac{\partial{\mathbf{u^\mathbf{T} v}} }{\partial\mathbf{x}} \\<br>&amp;=\frac{\partial{(u _1v _1 + u _2v _2 + u _3v _3 + \cdots + u _nv _n )}}{\partial{\mathbf{x}}} \\<br>&amp;=\frac{\partial{u _1v _1}}{\partial{\mathbf{x}}} + \frac{\partial{u _2v _2}}{\partial{\mathbf{x}}} + \frac{\partial{u _3v _3}}{\partial{\mathbf{x}}} + \cdots + \frac{\partial{u _nv _n}}{\partial{\mathbf{x}}} \\<br>&amp;=u _1\frac{\partial{v _1}}{\partial{\mathbf{x}}} + v _1\frac{\partial{u _1}}{\partial{\mathbf{x}}} + u _2\frac{\partial{v _2}}{\partial{\mathbf{x}}}  + v _2\frac{\partial{u _2}}{\partial{\mathbf{x}}} + \cdots + u _n\frac{\partial{v _n}}{\partial{\mathbf{x}}} + v _n\frac{\partial{u _n}}{\partial{\mathbf{x}}}  \\<br>&amp;=(u _1\frac{\partial{v _1}}{\partial{\mathbf{x}}} + u _2\frac{\partial{v _2}}{\partial{\mathbf{x}}} + \cdots + u _n\frac{\partial{v _n}}{\partial{\mathbf{x}}}) + (v _1\frac{\partial{u _1}}{\partial{\mathbf{x}}} + v _2\frac{\partial{u _2}}{\partial{\mathbf{x}}} + \cdots + v _n\frac{\partial{u _n}}{\partial{\mathbf{x}}}) \\<br>&amp;=\begin{bmatrix} \frac{\partial{v _1}}{\partial{\mathbf{x}}} &amp; \frac{\partial{v _2}}{\partial{\mathbf{x}}} &amp; \frac{\partial{v _3}}{\partial{\mathbf{x}}} &amp; \cdots &amp; \frac{\partial{v _n}}{\partial{\mathbf{x}}}<br>\end{bmatrix}<br>\begin{bmatrix}<br>u _1 \\ u _2 \\ u _3  \\ \vdots \\ u _n<br>\end{bmatrix} +<br>\begin{bmatrix} \frac{\partial{u _1}}{\partial{\mathbf{x}}} &amp; \frac{\partial{u _2}}{\partial{\mathbf{x}}} &amp; \frac{\partial{u _3}}{\partial{\mathbf{x}}} &amp; \cdots &amp; \frac{\partial{u _n}}{\partial{\mathbf{x}}}<br>\end{bmatrix}<br>\begin{bmatrix}<br>v _1 \\ v _2 \\ v _3  \\ \vdots \\ v _n<br>\end{bmatrix}  \\<br>&amp;=\frac{\partial{\mathbf{v}}}{\partial{\mathbf{x}}}\mathbf{u} + \frac{\partial{\mathbf{u}}}{\partial{\mathbf{x}}}\mathbf{v}<br>\end{aligned}<br>$$</p>
+<p>以上列举几种基本公式的原始推导，理解起来比较容易，但是比较繁琐。结合下一小节的维度分析会比较方便记忆。</p>
+<h3 id="5-维度分析"><a href="#5-维度分析" class="headerlink" title="5.维度分析"></a>5.维度分析</h3><p>假如 $\mathbf{A}\in\mathbb{R}^{m\times n},\mathbf{u}\in\mathbb{R}^{n\times1},\mathbf{x}\in\mathbb{R}^{p\times1}$<br>我们知道最后结果肯定和 $\frac{\partial\mathbf{u}}{\partial\mathbf{x}}$ 有关，注意到$\frac{\partial\mathbf{u}}{\partial\mathbf{x}}\in\mathbb{R}^{p\times n}$ ,于是$\mathbf{A}$ 只能转置以后添在后面，因此<br>$$<br>\frac{\partial\mathbf{Au}}{\partial\mathbf{x}}=\frac{\partial\mathbf{u}}{\partial\mathbf{x}}\mathbf{A}^{\mathrm{T}}<br>$$<br>同样对于$\frac{\partial a\mathbf{u}}{\partial\mathbf{x}},其中a是\text{}$关于$\mathbf{x}$的标量，假定$\mathbf{u}\in\mathbb{R}^{m\times1},\mathbf{x}\in\mathbb{R}^{n\times1}$,根据乘积法则（非精确版本），前一个部分肯定是$a\frac{\partial\mathbf{u}}{\partial\mathbf{x}}$，后一部分为$\frac{\partial a}{\partial\mathbf{x}}\in\mathbb{R}^{n\times1}$和$\mathbf{u}$的某种形式的积，分析维度发现只能是$\frac{\partial a}{\partial\mathbf{x}}\mathbf{u}^{\mathrm{T}}$ 。于是<br>$$\frac{\partial a\mathbf{u}}{\partial\mathbf{x}}=a\frac{\partial\mathbf{u}}{\partial\mathbf{x}}+\frac{\partial a}{\partial\mathbf{x}}\mathbf{u}^{\mathrm{T}}$$我们发现，虽然乘积法则的精准形式无法应用于矩阵求导中，然而这种非精确的乘积法则可以准确的告诉我们哪些项一定会出现在结果中，然后通过分析维度，我们就可以写出结果。</p>
+<p>再看$\frac{\partial\mathbf{x}^{\mathrm{T}}\mathbf{Ax}}{\partial\mathbf{x}}$，其中 $\mathbf{A}$和$\mathbf{x}$无关，为了分析这个问题，我们考虑一个更一般的问题，如：<br>$$<br>\frac{\partial\mathbf{x}^{\mathrm{T}}\mathbf{Ay}}{\partial\mathbf{x}},\mathbf{x}\in\mathbb{R}^{m\times1},\mathbf{y}\in\mathbb{R}^{n\times1}<br>$$<br>我们利用非精确的乘积法则，可以将这个分成两部分，一部分是$\frac{\partial\mathbf{y}}{\partial\mathbf{x}}\in\mathbb{R}^{m\times n}$，另一部分是$\frac{\partial\mathbf{x}^{\mathrm{T}}\mathbf{A}}{\partial\mathbf{x}}=\mathbf{A}\in\mathbb{R}^{m\times n}$</p>
+<p>同样通过分析维度，我们可以得到<br>$$<br>\frac{\partial\text{(}\mathbf{x}^{\mathrm{T}}\mathbf{A)y}}{\partial\mathbf{x}}=\frac{\partial\mathbf{y}}{\partial\mathbf{x}}\mathbf{A}^{\mathrm{T}}\mathbf{x}+\mathbf{Ay}<br>$$<br>因此，<br>$$\frac{\partial\mathbf{x}^{\mathrm{T}}\mathbf{Ax}}{\partial\mathbf{x}}=(\mathbf{A}^{\mathrm{T}}+\mathbf{A})\mathbf{x}$$<br>最后看一个式子<br>$$\frac{\partial\mathbf{a}^{\mathrm{T}}\mathbf{xx}^{\mathrm{T}}\mathbf{b}}{\partial\mathbf{x}},\mathbf{a,b,x}\in\mathbb{R}^{m\times1}<br>$$<br>$$<br>\frac{\partial\mathbf{a}^{\mathrm{T}}\mathbf{xx}^{\mathrm{T}}\mathbf{b}}{\partial\mathbf{x}}=\frac{\partial(\mathbf{a}^{\mathrm{T}}\mathbf{x)(x}^{\mathrm{T}}\mathbf{b)}}{\partial\mathbf{x}}<br>$$<br>注意到<br>$$<br>\frac{\partial(\mathbf{a}^{\mathrm{T}}\mathbf{x)}}{\partial\mathbf{x}}=\mathbf{a},\frac{\partial(\mathbf{x}^{\mathrm{T}}\mathbf{b)}}{\partial\mathbf{x}}=\mathbf{b}<br>$$<br>所以(注意到$\mathbf{x}^{\mathrm{T}}\mathbf{b}\in\mathbb{R}$ ):<br>$$<br>\frac{\partial\mathbf{a}^{\mathrm{T}}\mathbf{xx}^{\mathrm{T}}\mathbf{b}}{\partial\mathbf{x}}=\frac{\partial(\mathbf{a}^{\mathrm{T}}\mathbf{x)(x}^{\mathrm{T}}\mathbf{b)}}{\partial\mathbf{x}}=\mathbf{a}\mathbf{x}^{\mathrm{T}}\mathbf{b}+\mathbf{ba}^{\mathrm{T}}\mathbf{x}=(\mathbf{ab}^{\mathrm{T}}+\mathbf{ba}^{\mathrm{T}})\mathbf{x}<br>$$</p>
+<h2 id="6-公式表"><a href="#6-公式表" class="headerlink" title="6.公式表"></a>6.公式表</h2><h3 id="向量对向量求导"><a href="#向量对向量求导" class="headerlink" title="向量对向量求导"></a>向量对向量求导</h3><p><img src="/images/matrix_04.jpg" alt="向量对向量求导"></p>
+<h3 id="标量对向量求导"><a href="#标量对向量求导" class="headerlink" title="标量对向量求导"></a>标量对向量求导</h3><p><img src="/images/matrix_05.jpg" alt="标量对向量求导"><br><img src="/images/matrix_06.jpg" alt="标量对向量求导"></p>
+<h3 id="向量对标量求导"><a href="#向量对标量求导" class="headerlink" title="向量对标量求导"></a>向量对标量求导</h3><p><img src="/images/matrix_07.jpg" alt="向量对标量求导"></p>
+<h2 id="7-补充以及修正"><a href="#7-补充以及修正" class="headerlink" title="7.补充以及修正"></a>7.补充以及修正</h2><p>略</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/12/22/MathJax%E6%95%B0%E5%AD%A6%E5%85%AC%E5%BC%8F%E4%BD%BF%E7%94%A8%E8%AF%AD%E6%B3%95%E6%80%BB%E7%BB%93/" rel="prev" title="MathJax数学公式使用语法总结">
+      <i class="fa fa-chevron-left"></i> MathJax数学公式使用语法总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/01/09/%E7%A0%81%E5%86%9C%E4%BD%BF%E7%94%A8%E7%94%B5%E8%84%91%E7%9A%84%E6%97%A5%E5%B8%B8/" rel="next" title="码农使用电脑的日常">
+      码农使用电脑的日常 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-最初的约定"><span class="nav-number">1.</span> <span class="nav-text">1.最初的约定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-一起来推导"><span class="nav-number">2.</span> <span class="nav-text">2.一起来推导</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-两种布局"><span class="nav-number">3.</span> <span class="nav-text">3.两种布局</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-矩阵向量求导的定义（分母布局）"><span class="nav-number">4.</span> <span class="nav-text">4.矩阵向量求导的定义（分母布局）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-基本公式推导"><span class="nav-number">5.</span> <span class="nav-text">5.基本公式推导</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-frac-partial-mathbf-Ax-partial-mathbf-x"><span class="nav-number">5.1.</span> <span class="nav-text">1.$\frac{\partial\mathbf{Ax}}{\partial\mathbf{x}}$</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-frac-partial-mathbf-x-mathrm-T-A-partial-mathbf-x"><span class="nav-number">5.2.</span> <span class="nav-text">2.$\frac{\partial\mathbf{x^{\mathrm{T}}A}}{\partial\mathbf{x}}$</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-frac-partial-mathbf-Av-partial-mathbf-x"><span class="nav-number">5.3.</span> <span class="nav-text">3.$\frac{\partial{\mathbf{Av}}}{\partial{\mathbf{x}}}$</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-frac-partial-mathbf-u-cdot-v-partial-mathbf-x-frac-partial-mathbf-u-mathbf-T-v-partial-mathbf-x"><span class="nav-number">5.4.</span> <span class="nav-text">4.$\frac{\partial{\mathbf{u\cdot v}} }{\partial\mathbf{x}}=\frac{\partial{\mathbf{u^\mathbf{T} v}} }{\partial\mathbf{x}}$</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-维度分析"><span class="nav-number">5.5.</span> <span class="nav-text">5.维度分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-公式表"><span class="nav-number">6.</span> <span class="nav-text">6.公式表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#向量对向量求导"><span class="nav-number">6.1.</span> <span class="nav-text">向量对向量求导</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#标量对向量求导"><span class="nav-number">6.2.</span> <span class="nav-text">标量对向量求导</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#向量对标量求导"><span class="nav-number">6.3.</span> <span class="nav-text">向量对标量求导</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-补充以及修正"><span class="nav-number">7.</span> <span class="nav-text">7.补充以及修正</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Joe Tung</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Joe Tung</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.5.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
